@@ -15,6 +15,8 @@ import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 import {Config} from '@react-native-community/cli-types';
+// @ts-ignore untyped
+import inquirer from 'inquirer';
 import findXcodeProject, {ProjectInfo} from './findXcodeProject';
 import parseIOSDevicesList from './parseIOSDevicesList';
 import findMatchingSimulator from './findMatchingSimulator';
@@ -41,7 +43,7 @@ type FlagsT = {
   terminal: string | undefined;
 };
 
-function runIOS(_: Array<string>, ctx: Config, args: FlagsT) {
+async function runIOS(_: Array<string>, ctx: Config, args: FlagsT) {
   if (!fs.existsSync(args.projectPath)) {
     throw new CLIError(
       'iOS project folder not found. Are you sure this is a React Native project?',
@@ -89,6 +91,21 @@ function runIOS(_: Array<string>, ctx: Config, args: FlagsT) {
     }),
   );
 
+  if (args.device === true) {
+    const device = await promptWhichDeviceToRun(devices);
+
+    if (device) {
+      if (device.type === 'simulator') {
+        return runOnSimulator(xcodeProject, scheme, {
+          ...args,
+          udid: device.udid,
+        });
+      }
+
+      return runOnDevice(device, scheme, xcodeProject, args);
+    }
+  }
+
   if (args.udid) {
     const device = devices.find(d => d.udid === args.udid);
     if (!device) {
@@ -98,18 +115,46 @@ function runIOS(_: Array<string>, ctx: Config, args: FlagsT) {
         )}". ${printFoundDevices(devices)}`,
       );
     }
+
     if (device.type === 'simulator') {
       return runOnSimulator(xcodeProject, scheme, args);
-    } else {
-      return runOnDevice(device, scheme, xcodeProject, args);
     }
-  } else {
-    const physicalDevices = devices.filter(d => d.type !== 'simulator');
-    const device = matchingDevice(physicalDevices, args.device);
-    if (device) {
-      return runOnDevice(device, scheme, xcodeProject, args);
-    }
+
+    return runOnDevice(device, scheme, xcodeProject, args);
   }
+
+  const physicalDevices = devices.filter(d => d.type !== 'simulator');
+  const device = matchingDevice(physicalDevices, args.device);
+  if (device) {
+    return runOnDevice(device, scheme, xcodeProject, args);
+  }
+}
+
+async function promptWhichDeviceToRun(devices: Device[]): Promise<Device> {
+  const deviceTypes = ['simulator', 'device'];
+  const devicesList = devices.map(({type, name}) => {
+    const highlightColor = type === 'simulator' ? 'gray' : 'blue';
+
+    return (
+      type &&
+      deviceTypes.includes(type) &&
+      `${name} - ${chalk[highlightColor](type)}`
+    );
+  });
+
+  const {chosenDevice} = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'chosenDevice',
+      message: 'Which device to run the application?',
+      filter: (device: string) =>
+        device.substring(0, device.lastIndexOf('-')).trim(),
+      choices: devicesList.filter(Boolean),
+      loop: false,
+    },
+  ]);
+
+  return devices.find(device => device.name === chosenDevice)!;
 }
 
 async function runOnSimulator(

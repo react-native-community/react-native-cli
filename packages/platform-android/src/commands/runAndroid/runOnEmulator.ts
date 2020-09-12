@@ -13,7 +13,7 @@ import {logger, CLIError} from '@react-native-community/cli-tools';
 import adb from './adb';
 import tryRunAdbReverse from './tryRunAdbReverse';
 import tryLaunchAppOnDevice from './tryLaunchAppOnDevice';
-import tryLaunchEmulator from './tryLaunchEmulator';
+import {launchAnyEmulator, launchEmulator} from './emulator';
 import {Flags} from '.';
 
 function getTaskNames(appName: string, commands: Array<string>): Array<string> {
@@ -26,29 +26,62 @@ function toPascalCase(value: string) {
 
 type AndroidProject = NonNullable<Config['project']['android']>;
 
-async function runOnAllDevices(
+function logStartEmulatorError(error: Error) {
+  if (error.message) {
+    logger.error(
+      `Failed to launch emulator. Reason: ${chalk.dim(error.message)}`,
+    );
+  } else {
+    logger.error('Failed to launch emulator.');
+  }
+
+  logger.warn(
+    'Please launch an emulator manually or connect a device. Otherwise the app may fail to launch.',
+  );
+}
+
+async function startEmulator(adbPath: string, deviceName?: string) {
+  if (deviceName) {
+    logger.info('Launching emulator...');
+
+    try {
+      const deviceListAfterEmulatorLaunched = await launchEmulator(
+        deviceName,
+        adbPath,
+      );
+
+      return deviceListAfterEmulatorLaunched;
+    } catch (error) {
+      return logStartEmulatorError(error);
+    }
+  }
+
+  const devices = adb.getDevices(adbPath);
+  if (devices.length > 0) {
+    return devices;
+  }
+
+  logger.info('Launching emulator...');
+
+  try {
+    const deviceListAfterAnyEmulatorLaunched = await launchAnyEmulator(adbPath);
+
+    return deviceListAfterAnyEmulatorLaunched;
+  } catch (error) {
+    console.log({error});
+    return logStartEmulatorError(error);
+  }
+}
+
+async function runOnEmulator(
   args: Flags,
   cmd: string,
   packageName: string,
   adbPath: string,
   androidProject: AndroidProject,
+  deviceName?: string,
 ) {
-  let devices = adb.getDevices(adbPath);
-  if (devices.length === 0) {
-    logger.info('Launching emulator...');
-    const result = await tryLaunchEmulator(adbPath);
-    if (result.success) {
-      logger.info('Successfully launched emulator.');
-      devices = adb.getDevices(adbPath);
-    } else {
-      logger.error(
-        `Failed to launch emulator. Reason: ${chalk.dim(result.error || '')}.`,
-      );
-      logger.warn(
-        'Please launch an emulator manually or connect a device. Otherwise app may fail to launch.',
-      );
-    }
-  }
+  const devices = await startEmulator(adbPath, deviceName);
 
   try {
     const tasks = args.tasks || ['install' + toPascalCase(args.variant)];
@@ -74,12 +107,10 @@ async function runOnAllDevices(
     throw createInstallError(error);
   }
 
-  (devices.length > 0 ? devices : [undefined]).forEach(
-    (device: string | void) => {
-      tryRunAdbReverse(args.port, device);
-      tryLaunchAppOnDevice(device, packageName, adbPath, args);
-    },
-  );
+  (devices || []).forEach((device: string | void) => {
+    tryRunAdbReverse(args.port, device);
+    tryLaunchAppOnDevice(device, packageName, adbPath, args);
+  });
 }
 
 function createInstallError(error: Error & {stderr: string}) {
@@ -109,4 +140,4 @@ function createInstallError(error: Error & {stderr: string}) {
   return new CLIError(`Failed to install the app. ${message}.`, error);
 }
 
-export default runOnAllDevices;
+export default runOnEmulator;

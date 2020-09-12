@@ -6,12 +6,12 @@
  *
  */
 
-import runOnAllDevices from '../runOnAllDevices';
+import runOnEmulator from '../runOnEmulator';
 import execa from 'execa';
 
 jest.mock('execa');
 jest.mock('../getAdbPath');
-jest.mock('../tryLaunchEmulator');
+jest.mock('../emulator');
 
 describe('--appFolder', () => {
   const args = {
@@ -47,7 +47,7 @@ describe('--appFolder', () => {
   });
 
   it('uses task "install[Variant]" as default task', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, variant: 'debug'},
       './gradlew',
       'com.testapp',
@@ -60,7 +60,7 @@ describe('--appFolder', () => {
   });
 
   it('uses appName and default variant', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, variant: 'debug'},
       './gradlew',
       'com.testapp',
@@ -74,7 +74,7 @@ describe('--appFolder', () => {
   });
 
   it('uses appName and custom variant', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, variant: 'staging'},
       './gradlew',
       'com.testapp',
@@ -88,7 +88,7 @@ describe('--appFolder', () => {
   });
 
   it('uses appFolder and default variant', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, appFolder: 'someApp', variant: 'debug'},
       './gradlew',
       'com.testapp',
@@ -102,7 +102,7 @@ describe('--appFolder', () => {
   });
 
   it('uses appFolder and custom variant', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, appFolder: 'anotherApp', variant: 'staging'},
       './gradlew',
       'com.testapp',
@@ -116,7 +116,7 @@ describe('--appFolder', () => {
   });
 
   it('uses only task argument', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, tasks: ['someTask']},
       './gradlew',
       'com.testapp',
@@ -130,7 +130,7 @@ describe('--appFolder', () => {
   });
 
   it('uses appName and custom task argument', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, tasks: ['someTask']},
       './gradlew',
       'com.testapp',
@@ -144,7 +144,7 @@ describe('--appFolder', () => {
   });
 
   it('uses appFolder and custom task argument', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, appFolder: 'anotherApp', tasks: ['someTask'], variant: 'debug'},
       './gradlew',
       'com.testapp',
@@ -158,7 +158,7 @@ describe('--appFolder', () => {
   });
 
   it('uses multiple tasks', async () => {
-    await runOnAllDevices(
+    await runOnEmulator(
       {...args, tasks: ['clean', 'someTask']},
       './gradlew',
       'com.testapp',
