@@ -10,6 +10,7 @@ import path from 'path';
 
 export interface CommandLineArgs {
   assetsDest?: string;
+  assetCatalogDest?: string;
   entryFile: string;
   resetCache: boolean;
   resetGlobalCache: boolean;
@@ -94,6 +95,10 @@ export default [
     name: '--assets-dest [string]',
     description:
       'Directory name where to store assets referenced in the bundle',
+  },
+  {
+    name: '--asset-catalog-dest [string]',
+    description: 'Path where to create an iOS Asset Catalog for images',
   },
   {
     name: '--reset-cache',
