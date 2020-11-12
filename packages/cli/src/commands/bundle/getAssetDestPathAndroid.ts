@@ -14,7 +14,7 @@ function getAssetDestPathAndroid(asset: PackagerAsset, scale: number): string {
     asset,
     scale,
   );
-  const fileName = assetPathUtils.getAndroidResourceIdentifier(asset);
+  const fileName = assetPathUtils.getResourceIdentifier(asset);
   return path.join(androidFolder, `${fileName}.${asset.type}`);
 }
 

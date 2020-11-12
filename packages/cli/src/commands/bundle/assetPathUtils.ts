@@ -64,7 +64,7 @@ function getAndroidResourceFolderName(
   return androidFolder;
 }
 
-function getAndroidResourceIdentifier(asset: PackagerAsset): string {
+function getResourceIdentifier(asset: PackagerAsset): string {
   const folderPath = getBasePath(asset);
   return `${folderPath}/${asset.name}`
     .toLowerCase()
@@ -84,6 +84,6 @@ function getBasePath(asset: PackagerAsset): string {
 export default {
   getAndroidAssetSuffix,
   getAndroidResourceFolderName,
-  getAndroidResourceIdentifier,
+  getResourceIdentifier,
   getBasePath,
 };
