@@ -1,11 +1,10 @@
 import {Config} from '@react-native-community/cli-types';
-import {logger, CLIError} from '@react-native-community/cli-tools';
+import {logger, CLIError, fetch} from '@react-native-community/cli-tools';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import {SourceMap} from 'hermes-profile-transformer';
 import ip from 'ip';
-import {fetch} from '@react-native-community/cli-tools';
 
 function getTempFilePath(filename: string) {
   return path.join(os.tmpdir(), filename);
