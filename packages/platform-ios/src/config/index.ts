@@ -54,7 +54,7 @@ export function projectConfig(folder: string, userConfig: IOSProjectParams) {
     sourceDir,
     folder,
     pbxprojPath: path.join(projectPath, 'project.pbxproj'),
-    podfile: findPodfilePath(projectPath),
+    podfile: findPodfilePath(projectPath) || findPodfilePath(sourceDir),
     podspecPath:
       userConfig.podspecPath ||
       // podspecs are usually placed in the root dir of the library or in the
