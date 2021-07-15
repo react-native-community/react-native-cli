@@ -9,11 +9,11 @@ const fs = require('fs');
 describe('ios::findPodfilePath', () => {
   it('returns null if there is no Podfile', () => {
     fs.__setMockFilesystem(projects.withoutPods);
-    expect(findPodfilePath('')).toBeNull();
+    expect(findPodfilePath(process.cwd(), '')).toBeNull();
   });
 
   it('returns Podfile path if it exists', () => {
     fs.__setMockFilesystem(projects.withPods);
-    expect(findPodfilePath('/ios')).toContain('Podfile');
+    expect(findPodfilePath(process.cwd(), '/ios')).toContain('Podfile');
   });
 });
