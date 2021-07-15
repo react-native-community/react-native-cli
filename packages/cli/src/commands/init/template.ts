@@ -6,6 +6,8 @@ import copyFiles from '../../tools/copyFiles';
 import replacePathSepForRegex from '../../tools/replacePathSepForRegex';
 import fs from 'fs';
 import chalk from 'chalk';
+import ConflictingFilesError from './errors/ConflictingFilesError';
+import {getDirectoryFilesRecursive} from './getDirectoryFilesRecursive';
 
 export type TemplateConfig = {
   placeholderName: string;
@@ -68,10 +70,26 @@ export async function copyTemplate(
     templateName,
     templateDir,
   );
+  const projectDirectory = process.cwd();
+
+  const projectDirectoryFiles = await getDirectoryFilesRecursive(
+    projectDirectory,
+  );
+  const templatePathFiles = await getDirectoryFilesRecursive(templatePath);
+
+  const conflictingFiles: string[] = [];
+  for (const templatePathFile of templatePathFiles) {
+    if (projectDirectoryFiles.includes(templatePathFile)) {
+      conflictingFiles.push(path.join(projectDirectory, templatePathFile));
+    }
+  }
+  if (conflictingFiles.length > 0) {
+    throw new ConflictingFilesError(projectDirectory, conflictingFiles);
+  }
 
   logger.debug(`Copying template from ${templatePath}`);
   let regexStr = path.resolve(templatePath, 'node_modules');
-  await copyFiles(templatePath, process.cwd(), {
+  await copyFiles(templatePath, projectDirectory, {
     exclude: [new RegExp(replacePathSepForRegex(regexStr))],
   });
 }

@@ -5,7 +5,6 @@ import minimist from 'minimist';
 import ora from 'ora';
 import mkdirp from 'mkdirp';
 import {validateProjectName} from './validate';
-import DirectoryAlreadyExistsError from './errors/DirectoryAlreadyExistsError';
 import printRunInstructions from './printRunInstructions';
 import {CLIError, logger} from '@react-native-community/cli-tools';
 import {
@@ -45,20 +44,17 @@ function doesDirectoryExist(dir: string) {
 }
 
 async function setProjectDirectory(directory: string) {
-  if (doesDirectoryExist(directory)) {
-    throw new DirectoryAlreadyExistsError(directory);
+  if (directory !== '' && !doesDirectoryExist(directory)) {
+    try {
+      mkdirp.sync(directory);
+      process.chdir(directory);
+    } catch (error) {
+      throw new CLIError(
+        'Error occurred while trying to create project directory.',
+        error,
+      );
+    }
   }
-
-  try {
-    mkdirp.sync(directory);
-    process.chdir(directory);
-  } catch (error) {
-    throw new CLIError(
-      'Error occurred while trying to create project directory.',
-      error,
-    );
-  }
-
   return process.cwd();
 }
 
