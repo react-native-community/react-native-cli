@@ -6,7 +6,7 @@
  *
  */
 
-import findProject from '../findProject';
+import {findXcodeProject as findProject} from '../findProject';
 import * as projects from '../__fixtures__/projects';
 
 jest.mock('path');

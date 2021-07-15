@@ -12,8 +12,12 @@ export default function warnAboutManuallyLinkedLibs(
     Config['platforms']['ios']['linkConfig']
   > = getLinkConfig(),
 ) {
-  let deps: Array<string> = [];
   const projectConfig = config.project[platform];
+  if (projectConfig.pbxprojPath === null) {
+    return;
+  }
+
+  let deps: Array<string> = [];
 
   for (let key in config.dependencies) {
     const dependency = config.dependencies[key];

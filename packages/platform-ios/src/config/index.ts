@@ -8,15 +8,16 @@
 
 import path from 'path';
 import {memoize} from 'lodash';
-import findProject from './findProject';
-import findPodfilePath from './findPodfilePath';
+import {findPodfile, findXcodeProject} from './findProject';
 import findPodspec from './findPodspec';
+import isXcodeProject from './isXcodeProject';
 import {
   IOSProjectParams,
   IOSDependencyParams,
 } from '@react-native-community/cli-types';
 
-const memoizedFindProject = memoize(findProject);
+const memoizedFindPodfile = memoize(findPodfile);
+const memoizedFindProject = memoize(findXcodeProject);
 
 /**
  * For libraries specified without an extension, add '.tbd' for those that
@@ -38,23 +39,33 @@ export function projectConfig(folder: string, userConfig: IOSProjectParams) {
   if (!userConfig) {
     return;
   }
+
+  const podfile = memoizedFindPodfile(folder);
   const project = userConfig.project || memoizedFindProject(folder);
 
   /**
    * No iOS config found here
    */
-  if (!project) {
+  if (!project && !podfile) {
     return null;
   }
 
-  const projectPath = path.join(folder, project);
-  const sourceDir = path.dirname(projectPath);
+  const projectPath = project && path.join(folder, project);
+
+  // Source files may be referenced from anywhere in a `.xcodeproj`. CocoaPods,
+  // on the other hand, is a lot stricter because files cannot live outside the
+  // folder in which `Podfile` resides. If we found a `Podfile`, it's a strong
+  // indication that source files are in that directory.
+  const sourceDir = path.resolve(path.dirname(podfile || projectPath || ''));
 
   return {
     sourceDir,
     folder,
-    pbxprojPath: path.join(projectPath, 'project.pbxproj'),
-    podfile: findPodfilePath(projectPath),
+    pbxprojPath:
+      projectPath && isXcodeProject(projectPath)
+        ? path.join(projectPath, 'project.pbxproj')
+        : null,
+    podfile: podfile && path.resolve(podfile),
     podspecPath:
       userConfig.podspecPath ||
       // podspecs are usually placed in the root dir of the library or in the
@@ -62,7 +73,7 @@ export function projectConfig(folder: string, userConfig: IOSProjectParams) {
       findPodspec(folder) ||
       findPodspec(sourceDir),
     projectPath,
-    projectName: path.basename(projectPath),
+    projectName: projectPath && path.basename(projectPath),
     libraryFolder: userConfig.libraryFolder || 'Libraries',
     sharedLibraries: mapSharedLibaries(userConfig.sharedLibraries || []),
     plist: userConfig.plist || [],
