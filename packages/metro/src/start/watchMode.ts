@@ -1,6 +1,5 @@
 import readline from 'readline';
-import hookStdout from '../../tools/hookStdout';
-import {logger} from '@react-native-community/cli-tools';
+import {logger, hookStdout} from '@react-native-community/cli-tools';
 
 function printWatchModeInstructions() {
   logger.log(

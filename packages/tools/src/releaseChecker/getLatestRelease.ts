@@ -1,6 +1,7 @@
 import semver from 'semver';
 import cacheManager from './releaseCacheManager';
-import {fetch, logger} from '@react-native-community/cli-tools';
+import {fetch} from '../fetch';
+import logger from '../logger';
 
 export type Release = {
   version: string;

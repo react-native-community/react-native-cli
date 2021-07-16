@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import appDirs from 'appdirsjs';
 import mkdirp from 'mkdirp';
-import {logger} from '@react-native-community/cli-tools';
+import logger from '../logger';
 
 type ReleaseCacheKey = 'eTag' | 'lastChecked' | 'latestVersion';
 type Cache = {[key in ReleaseCacheKey]?: string};

@@ -4,7 +4,7 @@
 import path from 'path';
 // @ts-ignore - no typed definition for the package
 import {loadConfig} from 'metro-config';
-import {Config} from '@react-native-community/cli-types';
+import type {Config} from '@react-native-community/cli-types';
 import {reactNativePlatformResolver} from './metroPlatformResolver';
 
 const INTERNAL_CALLSITES_REGEX = new RegExp(
@@ -20,7 +20,9 @@ const INTERNAL_CALLSITES_REGEX = new RegExp(
   ].join('|'),
 );
 
-type ConfigLoadingContext = Pick<
+export type {Config};
+
+export type ConfigLoadingContext = Pick<
   Config,
   'root' | 'reactNativePath' | 'platforms'
 >;
@@ -141,7 +143,7 @@ export interface ConfigOptionsT {
  *
  * This allows the CLI to always overwrite the file settings.
  */
-export default function load(
+export function loadMetroConfig(
   ctx: ConfigLoadingContext,
   options?: ConfigOptionsT,
 ): Promise<MetroConfig> {

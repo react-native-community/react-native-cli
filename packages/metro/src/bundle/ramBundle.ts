@@ -9,20 +9,24 @@
 import outputUnbundle from 'metro/src/shared/output/RamBundle';
 import {withOutput as bundleWithOutput} from './bundle';
 import bundleCommandLineArgs, {CommandLineArgs} from './bundleCommandLineArgs';
-import {Config} from '@react-native-community/cli-types';
+import type {Config} from '@react-native-community/cli-types';
 
 /**
  * Builds the bundle starting to look for dependencies at the given entry path.
  */
-function ramBundle(argv: Array<string>, config: Config, args: CommandLineArgs) {
+function createRamBundle(
+  argv: Array<string>,
+  config: Config,
+  args: CommandLineArgs,
+) {
   return bundleWithOutput(argv, config, args, outputUnbundle);
 }
 
-export default {
+export const ramBundle = {
   name: 'ram-bundle',
   description:
     'builds javascript as a "Random Access Module" bundle for offline use',
-  func: ramBundle,
+  func: createRamBundle,
   options: bundleCommandLineArgs.concat({
     name: '--indexed-ram-bundle',
     description:

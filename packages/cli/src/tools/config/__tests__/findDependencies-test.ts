@@ -5,8 +5,6 @@ import {
   getTempDirectory,
 } from '../../../../../../jest/helpers';
 
-jest.mock('../resolveNodeModuleDir');
-
 beforeEach(async () => {
   await cleanup(DIR);
   jest.resetModules();

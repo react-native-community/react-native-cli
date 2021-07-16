@@ -1,7 +1,5 @@
 import {Command, DetachedCommand} from '@react-native-community/cli-types';
-import start from './start/start';
-import bundle from './bundle/bundle';
-import ramBundle from './bundle/ramBundle';
+import {start, bundle, ramBundle} from '@react-native-community/metro';
 import link from './link/link';
 import unlink from './link/unlink';
 import install from './install/install';

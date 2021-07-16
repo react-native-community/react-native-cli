@@ -7,12 +7,15 @@
     "access": "public"
   },
   "dependencies": {
+    "appdirsjs": "^1.2.4",
     "chalk": "^3.0.0",
     "lodash": "^4.17.15",
+    "mkdirp": "^0.5.1",
     "mime": "^2.4.1",
     "node-fetch": "^2.6.0",
     "open": "^6.2.0",
-    "shell-quote": "1.6.1"
+    "shell-quote": "1.6.1",
+    "semver": "^6.3.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.149",

@@ -8,6 +8,7 @@ describe('getDefaultConfig', () => {
     const config = getDefaultConfig({
       root: '/',
       reactNativePath: '',
+      // @ts-ignore
       platforms: {},
     });
 

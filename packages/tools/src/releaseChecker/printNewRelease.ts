@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import {logger} from '@react-native-community/cli-tools';
+import logger from '../logger';
 import {Release} from './getLatestRelease';
 import cacheManager from './releaseCacheManager';
 

@@ -9,13 +9,13 @@
 // @ts-ignore - no typed definition for the package
 import Server from 'metro/src/Server';
 // @ts-ignore - no typed definition for the package
-import outputBundle from 'metro/src/shared/output/bundle';
+const outputBundle = require('metro/src/shared/output/bundle');
 import path from 'path';
 import chalk from 'chalk';
 import {CommandLineArgs} from './bundleCommandLineArgs';
-import {Config} from '@react-native-community/cli-types';
+import type {Config} from '@react-native-community/cli-types';
 import saveAssets from './saveAssets';
-import loadMetroConfig from '../../tools/loadMetroConfig';
+import {loadMetroConfig} from '../config';
 import {logger} from '@react-native-community/cli-tools';
 
 interface RequestOptions {
@@ -40,7 +40,7 @@ export interface AssetData {
   files: string[];
 }
 
-async function buildBundle(
+export async function buildBundle(
   args: CommandLineArgs,
   ctx: Config,
   output: typeof outputBundle = outputBundle,
@@ -106,5 +106,3 @@ async function buildBundle(
     server.end();
   }
 }
-
-export default buildBundle;
