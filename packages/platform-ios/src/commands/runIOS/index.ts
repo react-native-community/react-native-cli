@@ -381,7 +381,7 @@ function buildProject(
             logs further, consider building your app with Xcode.app, by opening
             ${xcodeProject.name}.
           `,
-            buildOutput + '\n' + errorOutput,
+            xcpretty ? undefined : buildOutput + '\n' + errorOutput,
           ),
         );
         return;
