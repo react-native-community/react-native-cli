@@ -23,6 +23,7 @@ import {
 } from '@react-native-community/cli-tools';
 import warnAboutManuallyLinkedLibs from '../../link/warnAboutManuallyLinkedLibs';
 import {getAndroidProject, getPackageName} from '../../utils/getAndroidProject';
+import {buildApk, installApk} from './buildAndInstallApk';
 
 function displayWarnings(config: Config, args: Flags) {
   warnAboutManuallyLinkedLibs(config);
@@ -117,16 +118,15 @@ function buildAndRun(args: Flags, androidProject: AndroidProject) {
 
   const adbPath = getAdbPath();
   if (args.deviceId) {
-    return runOnSpecificDevice(args, cmd, packageName, adbPath, androidProject);
+    return runOnSpecificDevice(args, cmd, adbPath, androidProject);
   } else {
     return runOnAllDevices(args, cmd, packageName, adbPath, androidProject);
   }
 }
 
-function runOnSpecificDevice(
+async function runOnSpecificDevice(
   args: Flags,
   gradlew: 'gradlew.bat' | './gradlew',
-  packageName: string,
   adbPath: string,
   androidProject: AndroidProject,
 ) {
@@ -134,14 +134,10 @@ function runOnSpecificDevice(
   const {deviceId} = args;
   if (devices.length > 0 && deviceId) {
     if (devices.indexOf(deviceId) !== -1) {
-      buildApk(gradlew, androidProject.sourceDir);
-      installAndLaunchOnDevice(
-        args,
-        deviceId,
-        packageName,
-        adbPath,
-        androidProject,
-      );
+      await buildApk(args, gradlew, androidProject);
+      tryRunAdbReverse(args.port, deviceId);
+      await installApk(args, gradlew, adbPath, [deviceId], androidProject);
+      tryLaunchAppOnDevice(deviceId, androidProject.packageName, adbPath, args);
     } else {
       logger.error(
         `Could not find device with the id: "${deviceId}". Please choose one of the following:`,
@@ -151,88 +147,6 @@ function runOnSpecificDevice(
   } else {
     logger.error('No Android device or emulator connected.');
   }
-}
-
-function buildApk(gradlew: string, sourceDir: string) {
-  try {
-    // using '-x lint' in order to ignore linting errors while building the apk
-    const gradleArgs = ['build', '-x', 'lint'];
-    logger.info('Building the app...');
-    logger.debug(`Running command "${gradlew} ${gradleArgs.join(' ')}"`);
-    execa.sync(gradlew, gradleArgs, {stdio: 'inherit', cwd: sourceDir});
-  } catch (error) {
-    throw new CLIError('Failed to build the app.', error);
-  }
-}
-
-function tryInstallAppOnDevice(
-  args: Flags,
-  adbPath: string,
-  device: string,
-  androidProject: AndroidProject,
-) {
-  try {
-    // "app" is usually the default value for Android apps with only 1 app
-    const {appName, sourceDir} = androidProject;
-    const {appFolder} = args;
-    const variant = args.variant.toLowerCase();
-    const buildDirectory = `${sourceDir}/${appName}/build/outputs/apk/${variant}`;
-    const apkFile = getInstallApkName(
-      appFolder || appName, // TODO: remove appFolder
-      adbPath,
-      variant,
-      device,
-      buildDirectory,
-    );
-
-    const pathToApk = `${buildDirectory}/${apkFile}`;
-    const adbArgs = ['-s', device, 'install', '-r', '-d', pathToApk];
-    logger.info(`Installing the app on the device "${device}"...`);
-    logger.debug(
-      `Running command "cd android && adb -s ${device} install -r -d ${pathToApk}"`,
-    );
-    execa.sync(adbPath, adbArgs, {stdio: 'inherit'});
-  } catch (error) {
-    throw new CLIError('Failed to install the app on the device.', error);
-  }
-}
-
-function getInstallApkName(
-  appName: string,
-  adbPath: string,
-  variant: string,
-  device: string,
-  buildDirectory: string,
-) {
-  const availableCPUs = adb.getAvailableCPUs(adbPath, device);
-
-  // check if there is an apk file like app-armeabi-v7a-debug.apk
-  for (const availableCPU of availableCPUs.concat('universal')) {
-    const apkName = `${appName}-${availableCPU}-${variant}.apk`;
-    if (fs.existsSync(`${buildDirectory}/${apkName}`)) {
-      return apkName;
-    }
-  }
-
-  // check if there is a default file like app-debug.apk
-  const apkName = `${appName}-${variant}.apk`;
-  if (fs.existsSync(`${buildDirectory}/${apkName}`)) {
-    return apkName;
-  }
-
-  throw new CLIError('Could not find the correct install APK file.');
-}
-
-function installAndLaunchOnDevice(
-  args: Flags,
-  selectedDevice: string,
-  packageName: string,
-  adbPath: string,
-  androidProject: AndroidProject,
-) {
-  tryRunAdbReverse(args.port, selectedDevice);
-  tryInstallAppOnDevice(args, adbPath, selectedDevice, androidProject);
-  tryLaunchAppOnDevice(selectedDevice, packageName, adbPath, args);
 }
 
 function startServerInNewWindow(

@@ -46,7 +46,7 @@ describe('--appFolder', () => {
     jest.clearAllMocks();
   });
 
-  it('uses task "install[Variant]" as default task', async () => {
+  it('uses task "assemble[Variant]" as default build task', async () => {
     await runOnAllDevices(
       {...args, variant: 'debug'},
       './gradlew',
@@ -55,7 +55,7 @@ describe('--appFolder', () => {
       androidProject,
     );
     expect(((execa as unknown) as jest.Mock).mock.calls[0][1]).toContain(
-      'app:installDebug',
+      'app:assembleDebug',
     );
   });
 
@@ -69,7 +69,7 @@ describe('--appFolder', () => {
     );
 
     expect(((execa as unknown) as jest.Mock).mock.calls[0][1]).toContain(
-      'someApp:installDebug',
+      'someApp:assembleDebug',
     );
   });
 
@@ -83,7 +83,7 @@ describe('--appFolder', () => {
     );
 
     expect(((execa as unknown) as jest.Mock).mock.calls[0][1]).toContain(
-      'anotherApp:installStaging',
+      'anotherApp:assembleStaging',
     );
   });
 
@@ -97,7 +97,7 @@ describe('--appFolder', () => {
     );
 
     expect(((execa as unknown) as jest.Mock).mock.calls[0][1]).toContain(
-      'someApp:installDebug',
+      'someApp:assembleDebug',
     );
   });
 
@@ -111,7 +111,7 @@ describe('--appFolder', () => {
     );
 
     expect(((execa as unknown) as jest.Mock).mock.calls[0][1]).toContain(
-      'anotherApp:installStaging',
+      'anotherApp:assembleStaging',
     );
   });
 
