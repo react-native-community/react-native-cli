@@ -10,6 +10,7 @@ import nodeFetch, {
 } from 'node-fetch';
 import {CLIError} from './errors';
 import logger from './logger';
+import HttpsProxyAgent from 'https-proxy-agent';
 
 async function unwrapFetchResult(response: Response) {
   const data = await response.text();
@@ -54,14 +55,21 @@ const fetchToTemp = (url: string): Promise<string> => {
 
 const fetch = async (
   url: string | Request,
-  options?: FetchOptions,
+  options: FetchOptions = {},
 ): Promise<{status: number; data: any; headers: Headers}> => {
+  if (!options.agent) {
+    if (process.env.HTTP_PROXY) {
+      options.agent = HttpsProxyAgent(process.env.HTTP_PROXY);
+    } else if (process.env.http_proxy) {
+      options.agent = HttpsProxyAgent(process.env.http_proxy);
+    }
+  }
   const result = await nodeFetch(url, options);
   const data = await unwrapFetchResult(result);
 
   if (result.status >= 400) {
     throw new CLIError(
-      `Fetch request failed with status ${result.status}: ${data}.`,
+      `Fetch request failed with status ${result.status}: ${data}.`
     );
   }
 
