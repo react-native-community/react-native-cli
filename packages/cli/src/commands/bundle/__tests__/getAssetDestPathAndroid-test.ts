@@ -17,6 +17,7 @@ const path = require('path');
 describe('getAssetDestPathAndroid', () => {
   it('should use the right destination folder', () => {
     const asset = {
+      hash: '565eb945bdbabf6715f01965374ceea3',
       name: 'icon',
       type: 'png',
       httpServerLocation: '/assets/test',
@@ -39,6 +40,7 @@ describe('getAssetDestPathAndroid', () => {
 
   it('should lowercase path', () => {
     const asset = {
+      hash: '565eb945bdbabf6715f01965374ceea3',
       name: 'Icon',
       type: 'png',
       httpServerLocation: '/assets/App/Test',
@@ -51,6 +53,7 @@ describe('getAssetDestPathAndroid', () => {
 
   it('should remove `assets/` prefix', () => {
     const asset = {
+      hash: '565eb945bdbabf6715f01965374ceea3',
       name: 'icon',
       type: 'png',
       httpServerLocation: '/assets/RKJSModules/Apps/AndroidSample/Assets',
@@ -61,6 +64,7 @@ describe('getAssetDestPathAndroid', () => {
 
   it('should put non-drawable resources to `raw/`', () => {
     const asset = {
+      hash: '565eb945bdbabf6715f01965374ceea3',
       name: 'video',
       type: 'mp4',
       httpServerLocation: '/assets/app/test',
@@ -73,6 +77,7 @@ describe('getAssetDestPathAndroid', () => {
 
   it('should handle assets with a relative path outside of root', () => {
     const asset = {
+      hash: '565eb945bdbabf6715f01965374ceea3',
       name: 'icon',
       type: 'png',
       httpServerLocation: '/assets/../../test',
@@ -80,6 +85,21 @@ describe('getAssetDestPathAndroid', () => {
 
     expect(getAssetDestPathAndroid(asset, 1)).toBe(
       path.normalize('drawable-mdpi/__test_icon.png'),
+    );
+  });
+
+  it('should handle assets with filename contain non-latin letter', () => {
+    const asset = {
+      hash: '565eb945bdbabf6715f01965374ceea3',
+      name: 'ユーザー', // this asset's filename is in Japanese
+      type: 'png',
+      httpServerLocation: '/assets/App/Test',
+    };
+
+    expect(getAssetDestPathAndroid(asset, 1)).toBe(
+      path.normalize(
+        'drawable-mdpi/app_test_565eb945bdbabf6715f01965374ceea3.png',
+      ),
     );
   });
 });
