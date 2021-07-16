@@ -39,12 +39,46 @@ afterEach(() => {
   cleanupSync(DIR);
 });
 
-test('init fails if the directory already exists', () => {
-  fs.mkdirSync(path.join(DIR, 'TestInit'));
+test('init fails if the directory already contains conflicting files/sub-directories', () => {
+  const projectName = 'TestInit';
+  const directoryName = 'custom-path';
+  const someValidFiles = {
+    'Thumbs.db': '',
+    '.idea': '',
+    '.npmignore': '',
+    '.git': '',
+    '.travis.yml': '',
+    '.gitlab-ci.yml': '',
+    '.hgignore': '',
+    '.gitattributes': '',
+    docs: '',
+  };
+  const someInvalidFiles = {
+    'package.json': '',
+    'package-lock.json': '',
+    'yarn.lock': '',
+    node_modules: '',
+    'babel.config.js': '',
+    'android/gradlew': '',
+    [`ios/${projectName}/AppDelegate.h`]: '',
+  };
+  // pre existing directory structure
+  writeFiles(path.resolve(DIR, directoryName), {
+    ...someValidFiles,
+    ...someInvalidFiles,
+  });
 
-  const {stderr} = runCLI(DIR, ['init', 'TestInit'], {expectedFailure: true});
-  expect(stderr).toBe(
-    'error Cannot initialize new project because directory "TestInit" already exists.',
+  const {stderr} = runCLI(
+    DIR,
+    ['init', '--directory', directoryName, projectName],
+    {expectedFailure: true},
+  );
+
+  expect(stderr).toContain(
+    `The directory ${directoryName} contains files that could conflict:`,
+  );
+  expect(stderr).toContain(
+    'Either try using a new directory name, or remove the files listed above.',
   );
 });
 
